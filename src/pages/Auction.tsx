@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,13 +14,18 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "@/hooks/use-toast";
 import { Clock, Tag, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const auctionSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100),
   description: z.string().min(10, "Description must be at least 10 characters").max(500),
   category: z.string().min(1, "Please select a category"),
   startingPrice: z.string().min(1, "Starting price is required"),
-  endDate: z.string().min(1, "End date is required"),
+  startDate: z.string().min(1, "Start date and time is required"),
+  endDate: z.string().min(1, "End date and time is required"),
+}).refine(data => new Date(data.endDate) > new Date(data.startDate), {
+  message: "End date must be after start date",
+  path: ["endDate"],
 });
 
 type AuctionItem = {
@@ -36,41 +41,51 @@ type AuctionItem = {
 
 const Auction = () => {
   const navigate = useNavigate();
-  const [listedItems, setListedItems] = useState<AuctionItem[]>([
-    {
-      id: "1",
-      title: "Vintage Rolex Watch",
-      description: "Classic timepiece in excellent condition with original box and papers.",
-      category: "jewelry",
-      startingPrice: "$5,000",
-      currentBid: "$6,500",
-      endDate: "2025-12-15",
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-    },
-    {
-      id: "2",
-      title: "2020 Tesla Model 3",
-      description: "Low mileage electric vehicle with autopilot features.",
-      category: "cars",
-      startingPrice: "$35,000",
-      currentBid: "$38,000",
-      endDate: "2025-12-20",
-      image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400",
-    },
-    {
-      id: "3",
-      title: "iPhone 15 Pro Max",
-      description: "Brand new, sealed in box with 1TB storage.",
-      category: "phones",
-      startingPrice: "$1,200",
-      currentBid: "$1,350",
-      endDate: "2025-12-10",
-      image: "https://images.unsplash.com/photo-1592286927505-2c7c9a5c2a74?w=400",
-    },
-  ]);
+  const queryClient = useQueryClient();
 
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const { data: listedItems = [], isLoading } = useQuery({
+    queryKey: ["auctions", searchQuery, categoryFilter, sortBy],
+    queryFn: async () => {
+      let query = supabase.from("auctions").select("*");
+
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
+      }
+
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      if (sortBy === "newest") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "ending_soon") {
+        query = query.order("end_date", { ascending: true });
+      } else if (sortBy === "price_asc") {
+        query = query.order("current_price", { ascending: true });
+      } else if (sortBy === "price_desc") {
+        query = query.order("current_price", { ascending: false });
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,29 +96,40 @@ const Auction = () => {
       description: "",
       category: "",
       startingPrice: "",
+      startDate: "",
       endDate: "",
     },
   });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please select an image under 5MB",
-          variant: "destructive",
-        });
-        return;
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const validFiles = files.filter(file => {
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: `${file.name} is over 5MB`,
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length > 0) {
+        setSelectedImages(prev => [...prev, ...validFiles]);
+        const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => [...prev, ...newPreviews]);
       }
-      setSelectedImage(file);
-      setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const removeImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -114,48 +140,74 @@ const Auction = () => {
     let imageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400";
 
     try {
-      // Upload image if selected
-      if (selectedImage) {
-        const fileExt = selectedImage.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('auction-images')
-          .upload(fileName, selectedImage);
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        const { data: urlData } = supabase.storage
-          .from('auction-images')
-          .getPublicUrl(fileName);
-
-        imageUrl = urlData.publicUrl;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to list an item.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      const newItem: AuctionItem = {
-        id: Date.now().toString(),
-        title: values.title,
-        description: values.description,
-        category: values.category,
-        startingPrice: `$${values.startingPrice}`,
-        currentBid: `$${values.startingPrice}`,
-        endDate: values.endDate,
-        image: imageUrl,
-      };
+      let uploadedUrls: string[] = [];
 
-      setListedItems([newItem, ...listedItems]);
+      // Upload images if selected
+      if (selectedImages.length > 0) {
+        for (const image of selectedImages) {
+          const fileExt = image.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('auction-images')
+            .upload(fileName, image);
+
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('auction-images')
+            .getPublicUrl(fileName);
+
+          uploadedUrls.push(urlData.publicUrl);
+        }
+        imageUrl = uploadedUrls[0];
+      }
+
+      // Ensure dates are properly formatted as ISO timestamps
+      const startDateIso = new Date(values.startDate).toISOString();
+      const endDateIso = new Date(values.endDate).toISOString();
+
+      const { error: insertError } = await supabase
+        .from('auctions')
+        .insert({
+          title: values.title,
+          description: values.description,
+          category: values.category,
+          starting_price: parseFloat(values.startingPrice),
+          current_price: parseFloat(values.startingPrice),
+          end_date: endDateIso,
+          image_url: imageUrl,
+          image_urls: uploadedUrls,
+          seller_id: user.id
+        });
+
+      if (insertError) throw insertError;
+
+      queryClient.invalidateQueries({ queryKey: ["auctions"] });
       form.reset();
-      removeImage();
+      setSelectedImages([]);
+      setImagePreviews([]);
       toast({
         title: "Success!",
         description: "Your item has been listed for auction.",
       });
     } catch (error: any) {
+      console.error("Listing error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to upload image. Please try again.",
+        description: error?.message || "Failed to list item. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -175,11 +227,124 @@ const Auction = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      
+
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4">
-          {/* List New Item Section */}
+          {/* Listed Items Section (Moved to Top) */}
           <section className="mb-16">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4 text-primary">Active Auctions</h2>
+              <p className="text-muted-foreground">Browse all items currently up for auction</p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+              <div className="flex-1">
+                <Input
+                  type="search"
+                  placeholder="Search items by title or description..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="ending_soon">Ending Soonest</SelectItem>
+                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {isLoading ? (
+              <div className="flex justify-center items-center py-20">
+                <p className="text-muted-foreground animate-pulse">Loading auctions...</p>
+              </div>
+            ) : listedItems.length === 0 ? (
+              <div className="text-center py-20 bg-muted/30 rounded-lg">
+                <p className="text-lg text-muted-foreground mb-4">No items match your search criteria.</p>
+                <Button onClick={() => {
+                  setSearchInput("");
+                  setSearchQuery("");
+                  setCategoryFilter("all");
+                  setSortBy("newest");
+                }} variant="outline">
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {listedItems.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="overflow-hidden hover:shadow-hover transition-shadow duration-300 cursor-pointer"
+                    onClick={() => navigate(`/auction/${item.id}`)}
+                  >
+                    <div className="aspect-video overflow-hidden">
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="line-clamp-1">{item.title}</CardTitle>
+                      <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Tag className="h-4 w-4 text-accent" />
+                        <span className="text-muted-foreground capitalize">{item.category}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Current Bid</p>
+                          <p className="text-xl font-bold text-accent">${item.current_price?.toLocaleString() || "0"}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Starting</p>
+                          <p className="text-sm font-medium">${item.starting_price?.toLocaleString() || "0"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>Ends: {new Date(item.end_date).toLocaleDateString()}</span>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        className="w-full bg-gradient-accent"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/auction/${item.id}`);
+                        }}
+                      >
+                        View & Bid
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* List New Item Section (Moved to Bottom) */}
+          <section>
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold mb-4 text-primary">List Your Item</h1>
               <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -216,7 +381,7 @@ const Auction = () => {
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe your item in detail..."
                               className="min-h-24"
                               {...field}
@@ -252,7 +417,7 @@ const Auction = () => {
                       )}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <FormField
                         control={form.control}
                         name="startingPrice"
@@ -269,12 +434,26 @@ const Auction = () => {
 
                       <FormField
                         control={form.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Auction Start Time</FormLabel>
+                            <FormControl>
+                              <Input type="datetime-local" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
                         name="endDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Auction End Date</FormLabel>
+                            <FormLabel>Auction End Time</FormLabel>
                             <FormControl>
-                              <Input type="date" {...field} />
+                              <Input type="datetime-local" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -285,38 +464,43 @@ const Auction = () => {
                     <div className="space-y-2">
                       <FormLabel>Product Image</FormLabel>
                       <div className="border-2 border-dashed border-border rounded-lg p-4">
-                        {imagePreview ? (
-                          <div className="relative">
-                            <img 
-                              src={imagePreview} 
-                              alt="Preview" 
-                              className="w-full h-48 object-cover rounded-lg"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-2 right-2"
-                              onClick={removeImage}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div 
-                            className="flex flex-col items-center justify-center h-32 cursor-pointer"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                            <p className="text-sm text-muted-foreground">Click to upload image</p>
-                            <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
+                        {imagePreviews.length > 0 && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                            {imagePreviews.map((preview, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={preview}
+                                  alt={`Preview ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => removeImage(index)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
                           </div>
                         )}
+
+                        <div
+                          className="flex flex-col items-center justify-center h-32 cursor-pointer border-2 border-transparent hover:border-muted rounded-lg transition-colors"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">Click to upload images</p>
+                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB (Multiple allowed)</p>
+                        </div>
                         <input
                           type="file"
                           ref={fileInputRef}
                           onChange={handleImageSelect}
                           accept="image/*"
+                          multiple
                           className="hidden"
                         />
                       </div>
@@ -329,67 +513,6 @@ const Auction = () => {
                 </Form>
               </CardContent>
             </Card>
-          </section>
-
-          {/* Listed Items Section */}
-          <section>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4 text-primary">Active Auctions</h2>
-              <p className="text-muted-foreground">Browse all items currently up for auction</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {listedItems.map((item) => (
-                <Card 
-                  key={item.id} 
-                  className="overflow-hidden hover:shadow-hover transition-shadow duration-300 cursor-pointer"
-                  onClick={() => navigate(`/auction/${item.id}`)}
-                >
-                  <div className="aspect-video overflow-hidden">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="line-clamp-1">{item.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Tag className="h-4 w-4 text-accent" />
-                      <span className="text-muted-foreground capitalize">{item.category}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Current Bid</p>
-                        <p className="text-xl font-bold text-accent">{item.currentBid}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Starting</p>
-                        <p className="text-sm font-medium">{item.startingPrice}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      <span>Ends: {new Date(item.endDate).toLocaleDateString()}</span>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      className="w-full bg-gradient-accent"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/auction/${item.id}`);
-                      }}
-                    >
-                      View & Bid
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
           </section>
         </div>
       </main>

@@ -25,19 +25,16 @@ const Login = () => {
       }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/");
-      }
-    });
+    // We no longer strictly listen for SIGNED_IN auth changes to redirect here,
+    // because we need to check payment methods first upon manual login.
+    // Session check is enough for auto-login on reload.
 
-    return () => subscription.unsubscribe();
+    return () => { };
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast({
         title: "Error",
@@ -65,6 +62,19 @@ const Login = () => {
         title: "Success",
         description: "Logged in successfully!",
       });
+
+      // Check if user has a verified payment method
+      const { data: methods } = await supabase
+        .from("user_payment_methods")
+        .select("id")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .limit(1);
+
+      if (!methods || methods.length === 0) {
+        navigate("/payment-methods");
+      } else {
+        navigate("/");
+      }
     }
 
     setLoading(false);
@@ -73,13 +83,13 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 flex items-center justify-center py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto bg-card p-8 rounded-lg shadow-elegant border border-border">
             <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
             <p className="text-muted-foreground mb-6">Sign in to your Auctify account</p>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -92,7 +102,7 @@ const Login = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -113,16 +123,16 @@ const Login = () => {
                   </button>
                 </div>
               </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full" 
+
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={loading}
               >
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-            
+
             <p className="text-center mt-6 text-muted-foreground">
               Don't have an account?{" "}
               <Link to="/signup" className="text-accent hover:underline font-semibold">

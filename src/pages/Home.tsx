@@ -1,9 +1,20 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Gem, Car, Smartphone, Laptop, Watch, Home as HomeIcon, ArrowRight } from "lucide-react";
+import { Clock, Gem, Car, Smartphone, Laptop, Watch, Home as HomeIcon, ArrowRight, Tag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import heroImage from "@/assets/hero-auction.jpg";
 
 const Home = () => {
@@ -18,32 +29,70 @@ const Home = () => {
 
   const navigate = useNavigate();
 
-  const featuredAuctions = [
-    { id: "1", title: "Vintage Rolex Watch", currentBid: "$5,200", timeLeft: "2h 15m", category: "Watches" },
-    { id: "2", title: "Diamond Necklace", currentBid: "$8,500", timeLeft: "5h 30m", category: "Jewelry" },
-    { id: "3", title: "iPhone 15 Pro Max", currentBid: "$1,100", timeLeft: "1h 45m", category: "Phones" },
-    { id: "4", title: "Tesla Model 3", currentBid: "$35,000", timeLeft: "12h 20m", category: "Cars" },
-  ];
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const { data: featuredAuctions = [], isLoading } = useQuery({
+    queryKey: ["featured-auctions", searchQuery, categoryFilter, sortBy],
+    queryFn: async () => {
+      let query = supabase.from("auctions").select("*");
+
+      if (categoryFilter !== "all") {
+        query = query.eq("category", categoryFilter);
+      }
+
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      if (sortBy === "newest") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "ending_soon") {
+        query = query.order("end_date", { ascending: true });
+      } else if (sortBy === "price_asc") {
+        query = query.order("current_price", { ascending: true });
+      } else if (sortBy === "price_desc") {
+        query = query.order("current_price", { ascending: false });
+      }
+
+      // Limit to 8 instead of 4 so search is more effective
+      query = query.limit(8);
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
-            <img 
-              src={heroImage} 
-              alt="Auction hero background" 
+            <img
+              src={heroImage}
+              alt="Auction hero background"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-hero" />
           </div>
-          
+
           <div className="relative z-10 container mx-auto px-4 text-center text-white animate-fade-in">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Discover Unique Treasures
+              Auctify
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90">
               Bid on exceptional items from sellers worldwide
@@ -73,8 +122,8 @@ const Home = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {categories.map((category, index) => (
-                <Card 
-                  key={category.name} 
+                <Card
+                  key={category.name}
                   className="group cursor-pointer hover:shadow-hover transition-all duration-300 animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                   onClick={() => navigate("/auction")}
@@ -92,7 +141,7 @@ const Home = () => {
         {/* Featured Auctions */}
         <section className="py-20">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Featured Auctions
               </h2>
@@ -101,50 +150,115 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredAuctions.map((auction, index) => (
-                <Card 
-                  key={auction.title} 
-                  className="group cursor-pointer hover:shadow-hover transition-all duration-300 overflow-hidden animate-fade-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => navigate(`/auction/${auction.id}`)}
-                >
-                  <div className="h-48 bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-105 transition-transform duration-300" />
-                  <CardContent className="p-6 space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="px-2 py-1 bg-accent/10 text-accent rounded-full text-xs font-medium">
-                        {auction.category}
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-lg text-foreground group-hover:text-accent transition-colors">
-                      {auction.title}
-                    </h3>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Current Bid</p>
-                        <p className="font-bold text-xl text-accent">{auction.currentBid}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-destructive">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm font-medium">{auction.timeLeft}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full bg-gradient-primary hover:opacity-90" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/auction/${auction.id}`);
-                      }}
-                    >
-                      Place Bid
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+              <div className="flex-1">
+                <Input
+                  type="search"
+                  placeholder="Search hot items by title or description..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.name} value={cat.name.toLowerCase()}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="ending_soon">Ending Soonest</SelectItem>
+                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {isLoading ? (
+              <div className="flex justify-center items-center py-10 w-full">
+                <p className="text-muted-foreground animate-pulse">Loading featured auctions...</p>
+              </div>
+            ) : featuredAuctions.length === 0 ? (
+              <div className="text-center py-20 bg-muted/30 rounded-lg">
+                <p className="text-lg text-muted-foreground mb-4">No featured items match your search criteria.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredAuctions.map((auction, index) => (
+                  <Card
+                    key={auction.id}
+                    className="group cursor-pointer hover:shadow-hover transition-all duration-300 overflow-hidden animate-fade-in flex flex-col"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => navigate(`/auction/${auction.id}`)}
+                  >
+                    <div className="h-48 overflow-hidden relative">
+                      {auction.image_url ? (
+                        <img
+                          src={auction.image_url}
+                          alt={auction.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-105 transition-transform duration-300" />
+                      )}
+                    </div>
+                    <CardContent className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Tag className="h-4 w-4 text-accent" />
+                          <span className="text-sm text-muted-foreground capitalize">
+                            {auction.category}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-lg text-foreground group-hover:text-accent transition-colors line-clamp-1 mb-2">
+                          {auction.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                          {auction.description}
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Current Bid</p>
+                            <p className="font-bold text-xl text-accent">${auction.current_price?.toLocaleString() || "0"}</p>
+                          </div>
+                          <div className="text-right flex flex-col items-end">
+                            <Clock className="h-4 w-4 text-muted-foreground mb-1" />
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {new Date(auction.end_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          className="w-full bg-gradient-accent"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/auction/${auction.id}`);
+                          }}
+                        >
+                          View & Bid
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             <div className="text-center mt-12">
               <Button variant="outline" size="lg" asChild>

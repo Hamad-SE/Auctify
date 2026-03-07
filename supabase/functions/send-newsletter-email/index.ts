@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Verify the email exists in newsletter_subscribers table
     // This ensures emails can only be sent to verified subscribers
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    
+
     const { data: subscriber, error: lookupError } = await supabase
       .from("newsletter_subscribers")
       .select("email")
@@ -117,7 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
         ...corsHeaders,
       },
     });
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error("Error in send-newsletter-email function:", error);
     return new Response(
       JSON.stringify({ error: "An unexpected error occurred. Please try again later." }),

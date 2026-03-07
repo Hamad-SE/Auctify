@@ -27,18 +27,19 @@ const Signup = () => {
     });
 
     // Listen for auth changes
+    // We rely on manual navigation for signups so we can push them to verification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         navigate("/");
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => { };
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!fullName || !email || !password) {
       toast({
         title: "Error",
@@ -79,23 +80,24 @@ const Signup = () => {
     } else {
       toast({
         title: "Success",
-        description: "Account created successfully!",
+        description: "Account created successfully! Please verify your identity.",
       });
+      // Redirect to verification immediately for new signups
+      navigate("/payment-methods");
     }
-
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 flex items-center justify-center py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto bg-card p-8 rounded-lg shadow-elegant border border-border">
             <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
             <p className="text-muted-foreground mb-6">Join Auctify and start bidding</p>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
@@ -120,7 +122,7 @@ const Signup = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -141,16 +143,16 @@ const Signup = () => {
                   </button>
                 </div>
               </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full" 
+
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={loading}
               >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
-            
+
             <p className="text-center mt-6 text-muted-foreground">
               Already have an account?{" "}
               <Link to="/login" className="text-accent hover:underline font-semibold">

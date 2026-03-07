@@ -43,7 +43,7 @@ const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Auction", path: "/auction" },
     { name: "About", path: "/about" },
-    { name: "Blog", path: "/blog" },
+    { name: "Payments", path: "/payment-methods" },
     { name: "Contact", path: "/contact" },
   ];
 
@@ -82,6 +82,9 @@ const Navbar = () => {
                 <span className="text-sm text-muted-foreground">
                   {user.email}
                 </span>
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
                 <Button variant="ghost" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
@@ -132,7 +135,10 @@ const Navbar = () => {
                     <span className="px-2 text-sm text-muted-foreground">
                       {user.email}
                     </span>
-                    <Button variant="ghost" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
+                    <Button variant="ghost" asChild className="justify-start">
+                      <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+                    </Button>
+                    <Button variant="ghost" onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="justify-start">
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout
                     </Button>

@@ -1,0 +1,74 @@
+
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='utf-8'><title>Auctify Requirements</title></head>
+<body>
+<h1>Auctify: Project Requirements & Specifications</h1>
+
+<h2>Overview</h2>
+Auctify is a modern, real-time auction platform designed to connect buyers and sellers in a secure, transparent, and user-friendly environment. The platform allows users to list items, participate in real-time bidding wars, manage payments securely through an escrow system, and communicate directly with winners via a built-in chat module.
+
+---
+
+<h2>1. Core Features & Functionality</h2>
+
+<h3>1.1 User Authentication & Profiles</h3>
+<ul><li><strong>Secure Registration/Login</strong>: Powered by Supabase Auth with secure password hashing.</li></ul>
+<ul><li><strong>Identity Verification</strong>: Users must add and verify a payment method before listing or bidding on items, ensuring a high-quality community and discouraging fraud.</li></ul>
+<ul><li><strong>User Dashboard</strong>: A central hub where users can monitor their Active Bids, My Listings, Watchlisted items, and Direct Messages.</li></ul>
+
+<h3>1.2 Auction Management</h3>
+<ul><li><strong>Listing Creation</strong>: Sellers can create detailed listings with titles, descriptions, categories (Jewelry, Cars, Electronics, Fashion, etc.), starting prices, and upload multiple product images.</li></ul>
+<ul><li><strong>Scheduled Auctions</strong>: Auctions have explicit start and end times, preventing premature bidding and automatically closing when time expires.</li></ul>
+<ul><li><strong>Real-Time Bidding Engine</strong>: Powered by Supabase Realtime integrations, incoming bids are instantly broadcasted to all viewers without needing to refresh the page.</li></ul>
+<ul><li><strong>Bid Validation</strong>: The database enforces strict rules (e.g., bids must be strictly greater than the current price, sellers cannot bid on their own items, and auctions must be active).</li></ul>
+<ul><li><strong>Search & Filtering</strong>: Users can filter active auctions by Category and use text search to find specific items. Sorting options include "Newest", "Ending Soonest", and "Price (High/Low)".</li></ul>
+
+<h3>1.3 Secure Payment Escrow System</h3>
+<ul><li><strong>Pre-requisite Verification</strong>: The platform simulates a requirement for a payment method on file to hold users accountable.</li></ul>
+<ul><li><strong>Escrow-style Payments</strong>: When an auction ends, the winning bidder processes payment. Instead of going directly to the seller, funds are held in an "Escrow" status.</li></ul>
+<ul><li><strong>Fund Release</strong>: Only when the buyer manually confirms receipt of the physical item are the funds formally marked as "Released" to the seller.</li></ul>
+
+<h3>1.4 Real-Time Chat System</h3>
+<ul><li><strong>Post-Auction Communication</strong>: Once an auction concludes, a private, real-time chat room is unlocked <em>only</em> for the seller and the winning bidder.</li></ul>
+<ul><li><strong>Integrated Escrow Banners</strong>: The chat UI includes contextual banners that update based on the payment status (e.g., warning the seller if payment is not yet in escrow, or reminding the buyer to release funds once the item arrives).</li></ul>
+<ul><li><strong>Instant Messaging</strong>: Messages are delivered instantly using Supabase Realtime channels.</li></ul>
+
+---
+
+<h2>2. Technical Architecture</h2>
+
+<ul><li><strong>Frontend Framework</strong>: React with TypeScript, built using Vite for fast hot-module replacement and optimized builds.</li></ul>
+<ul><li><strong>Styling</strong>: Tailwind CSS combined with <code>shadcn/ui</code> components for a modern, responsive, and accessible interface.</li></ul>
+<ul><li><strong>Routing</strong>: <code>react-router-dom</code> for client-side routing.</li></ul>
+<ul><li><strong>State Management</strong>: React Query (<code>@tanstack/react-query</code>) for efficient data fetching, caching, and cache invalidation.</li></ul>
+<ul><li><strong>Backend/Database</strong>: </li></ul>
+  - Supabase (PostgreSQL) acts as the backend-as-a-service.
+  - Features heavily utilize Row Level Security (RLS) to ensure data privacy.
+  - PostgreSQL functions (RPCs) are used to handle complex atomic transactions, such as placing a bid and ensuring no race conditions occur.
+
+---
+
+<h2>3. Security & Trust Management</h2>
+
+<h3>3.1 Data Security</h3>
+<ul><li><strong>Row Level Security (RLS)</strong>: PostgreSQL policies dictate exactly who can read or write data. For example:</li></ul>
+  - Only the specific buyer and seller can view their payment records.
+  - Only the sender and receiver can view their private chat messages.
+  - Users can only delete or edit their <em>own</em> auction listings.
+<ul><li><strong>Atomic Transactions</strong>: Bidding logic is handled via a <code>security definer</code> SQL function. It uses <code>FOR UPDATE</code> row locking to prevent race conditions when two users attempt to bid at the exact same millisecond.</li></ul>
+
+<h3>3.2 User Trust</h3>
+<ul><li><strong>Escrow Mechanics</strong>: The platform protects buyers by preventing sellers from taking the money and running. It protects sellers by ensuring the buyer has actually paid into escrow before the seller ships the item.</li></ul>
+<ul><li><strong>Identity Friction</strong>: Requiring a verified payment method before participating acts as a strong deterrent against bot accounts and bad actors.</li></ul>
+<ul><li><strong>Accountability</strong>: Real-time communication ensures sellers and buyers have an audited trail of conversation if disputes arise.</li></ul>
+
+---
+
+<h2>4. Why Auctify is Best for Users</h2>
+1. <strong>Dynamic Design</strong>: The UI leverages glassmorphism, smooth animations, and interactive hover states to create a premium, engaging feel that encourages interaction.
+2. <strong>Instant Feedback</strong>: From bidding to chatting, everything happens in real-time. Users never have to manually refresh the page to see if they've been outbid or received a message.
+3. <strong>Peace of Mind</strong>: The combination of verified accounts and escrow payments creates one of the safest environments possible for peer-to-peer transactions.
+4. <strong>All-in-One Dashboard</strong>: Users don't need to navigate complex menus. Everything from their watchlists to their active chats is accessible from a single, unified dashboard view.
+
+</body>
+</html>
