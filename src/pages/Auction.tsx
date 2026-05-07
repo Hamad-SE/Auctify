@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Navbar from "@/components/Navbar";
@@ -42,11 +42,18 @@ type AuctionItem = {
 const Auction = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
 
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get("category") || "all");
   const [sortBy, setSortBy] = useState("newest");
+
+  // Sync category filter if URL param changes (e.g. browser back/forward)
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat) setCategoryFilter(cat);
+  }, [searchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

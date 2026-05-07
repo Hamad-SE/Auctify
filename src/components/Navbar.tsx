@@ -10,32 +10,28 @@ import type { User } from "@supabase/supabase-js";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-      }
+      (event, session) => setUser(session?.user ?? null)
     );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully.",
-    });
+    toast({ title: "Logged out", description: "You have been logged out successfully." });
     navigate("/");
   };
 
@@ -49,107 +45,157 @@ const Navbar = () => {
 
   const isActivePath = (path: string) => location.pathname === path;
 
+  const navStyle: React.CSSProperties = {
+    position: 'sticky',
+    top: 0,
+    zIndex: 50,
+    width: '100%',
+    background: '#ffffff',
+    borderBottom: '1px solid hsl(214 32% 91%)',
+    boxShadow: scrolled ? '0 2px 16px -4px rgba(0,0,0,0.1)' : 'none',
+    transition: 'box-shadow 0.3s ease',
+  };
+
+  const logoText: React.CSSProperties = {
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '20px',
+    fontWeight: 800,
+    color: '#0f172a',
+    letterSpacing: '-0.04em',
+    lineHeight: 1,
+  };
+
+  const navLinkBase: React.CSSProperties = {
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '14px',
+    fontWeight: 500,
+    textDecoration: 'none',
+    transition: 'color 0.15s ease',
+    letterSpacing: '-0.01em',
+  };
+
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav style={navStyle}>
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div style={{ display: 'flex', height: '64px', alignItems: 'center', justifyContent: 'space-between' }}>
+
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <Gavel className="h-6 w-6 text-accent" />
-            <span className="text-xl font-bold text-primary">Auctify</span>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '8px',
+              background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Gavel style={{ width: '15px', height: '15px', color: '#fff' }} />
+            </div>
+            <span style={logoText}>Auctify</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:gap-8">
+          {/* Desktop Nav */}
+          <div className="hidden md:flex" style={{ alignItems: 'center', gap: '32px' }}>
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-accent",
-                  isActivePath(link.path) ? "text-accent" : "text-foreground"
-                )}
+                style={{
+                  ...navLinkBase,
+                  color: isActivePath(link.path) ? '#2563eb' : '#64748b',
+                  fontWeight: isActivePath(link.path) ? 600 : 500,
+                }}
+                onMouseEnter={e => { if (!isActivePath(link.path)) e.currentTarget.style.color = '#0f172a'; }}
+                onMouseLeave={e => { if (!isActivePath(link.path)) e.currentTarget.style.color = '#64748b'; }}
               >
                 {link.name}
               </Link>
             ))}
           </div>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex md:items-center md:gap-3">
+          {/* Auth */}
+          <div className="hidden md:flex" style={{ alignItems: 'center', gap: '10px' }}>
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground">
+                <span style={{ fontSize: '12px', color: '#94a3b8', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif' }}>
                   {user.email}
                 </span>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" size="sm" asChild style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#475569' }}>
                   <Link to="/dashboard">Dashboard</Link>
                 </Button>
-                <Button variant="ghost" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
+                <Button variant="ghost" size="sm" onClick={handleLogout} style={{ fontFamily: 'Inter, sans-serif', color: '#94a3b8' }}>
+                  <LogOut style={{ width: '14px', height: '14px', marginRight: '6px' }} />
                   Logout
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" asChild>
-                  <Link to="/login">Login</Link>
+                <Button variant="ghost" size="sm" asChild style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#475569', fontSize: '14px' }}>
+                  <Link to="/login">Log in</Link>
                 </Button>
-                <Button asChild className="bg-gradient-accent">
-                  <Link to="/signup">Sign Up</Link>
-                </Button>
+                <Link
+                  to="/signup"
+                  style={{
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontSize: '14px', fontWeight: 600,
+                    color: '#ffffff',
+                    background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+                    padding: '8px 18px', borderRadius: '8px',
+                    textDecoration: 'none', letterSpacing: '-0.01em',
+                    boxShadow: '0 1px 6px rgba(37,99,235,0.3)',
+                    transition: 'opacity 0.15s, transform 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = ''; }}
+                >
+                  Sign up
+                </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile toggle */}
           <button
             className="md:hidden"
+            style={{ padding: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#475569' }}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? <X style={{ width: '20px', height: '20px' }} /> : <Menu style={{ width: '20px', height: '20px' }} />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border py-4 animate-fade-in">
-            <div className="flex flex-col gap-4">
+          <div className="md:hidden animate-fade-in" style={{ borderTop: '1px solid hsl(214 32% 91%)', padding: '12px 0 16px', background: '#fff' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={cn(
-                    "px-2 py-2 text-sm font-medium transition-colors hover:text-accent",
-                    isActivePath(link.path) ? "text-accent" : "text-foreground"
-                  )}
+                  style={{
+                    padding: '10px 12px', fontSize: '14px', fontWeight: 500,
+                    borderRadius: '6px', textDecoration: 'none',
+                    color: isActivePath(link.path) ? '#2563eb' : '#475569',
+                    background: isActivePath(link.path) ? '#eff6ff' : 'transparent',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
                 >
                   {link.name}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 pt-2 border-t border-border">
+              <div style={{ paddingTop: '10px', marginTop: '4px', borderTop: '1px solid hsl(214 32% 91%)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {user ? (
                   <>
-                    <span className="px-2 text-sm text-muted-foreground">
-                      {user.email}
-                    </span>
-                    <Button variant="ghost" asChild className="justify-start">
-                      <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-                    </Button>
-                    <Button variant="ghost" onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="justify-start">
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
+                    <span style={{ padding: '0 12px', fontSize: '12px', color: '#94a3b8', fontFamily: 'Inter, sans-serif' }}>{user.email}</span>
+                    <Button variant="ghost" size="sm" asChild style={{ justifyContent: 'flex-start' }}><Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link></Button>
+                    <Button variant="ghost" size="sm" onClick={() => { handleLogout(); setIsMenuOpen(false); }} style={{ justifyContent: 'flex-start', color: '#94a3b8' }}>
+                      <LogOut style={{ width: '14px', height: '14px', marginRight: '8px' }} />Logout
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="ghost" asChild>
-                      <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
-                    </Button>
-                    <Button asChild className="bg-gradient-accent">
-                      <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                    <Button variant="ghost" size="sm" asChild style={{ justifyContent: 'flex-start', color: '#475569' }}><Link to="/login" onClick={() => setIsMenuOpen(false)}>Log in</Link></Button>
+                    <Button size="sm" asChild style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)', color: '#fff', fontWeight: 600 }}>
+                      <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Sign up</Link>
                     </Button>
                   </>
                 )}

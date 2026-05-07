@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Gavel } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,63 +18,36 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
-      }
+      if (session) navigate("/");
     });
-
-    // We no longer strictly listen for SIGNED_IN auth changes to redirect here,
-    // because we need to check payment methods first upon manual login.
-    // Session check is enough for auto-login on reload.
-
-    return () => { };
+    return () => {};
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Login Failed", description: error.message, variant: "destructive" });
     } else {
-      toast({
-        title: "Success",
-        description: "Logged in successfully!",
-      });
+      toast({ title: "Welcome back!", description: "You've been signed in." });
 
-      // Check if user has a verified payment method
       const { data: methods } = await supabase
         .from("user_payment_methods")
         .select("id")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .limit(1);
 
-      if (!methods || methods.length === 0) {
-        navigate("/payment-methods");
-      } else {
-        navigate("/");
-      }
+      navigate(!methods || methods.length === 0 ? "/payment-methods" : "/");
     }
 
     setLoading(false);
@@ -84,27 +57,56 @@ const Login = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-md mx-auto bg-card p-8 rounded-lg shadow-elegant border border-border">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
-            <p className="text-muted-foreground mb-6">Sign in to your Auctify account</p>
+      <main className="flex-1 flex">
+        {/* Left — brand panel */}
+        <div className="hidden lg:flex lg:w-5/12 bg-primary flex-col justify-between p-12">
+          <div className="flex items-center gap-2">
+            <Gavel className="h-5 w-5 text-accent" />
+            <span className="font-display text-xl text-white tracking-tight" style={{ letterSpacing: "-0.02em" }}>
+              Auctify
+            </span>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+          <div>
+            <blockquote className="font-display text-3xl text-white leading-snug mb-6">
+              "The thrill of winning an auction is unlike anything else."
+            </blockquote>
+            <p className="text-white/50 text-sm">Bid on exceptional items from verified sellers worldwide.</p>
+          </div>
+
+          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Auctify</p>
+        </div>
+
+        {/* Right — form */}
+        <div className="flex-1 flex items-center justify-center px-6 py-16 bg-background">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="font-display text-3xl text-foreground mb-1">Welcome back</h1>
+              <p className="text-muted-foreground text-sm">Sign in to your Auctify account</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium text-foreground mb-1.5 block">
+                  Email address
+                </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-11"
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                    Password
+                  </Label>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"
@@ -112,12 +114,13 @@ const Login = () => {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="h-11 pr-10"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -126,17 +129,17 @@ const Login = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-11 bg-primary text-white hover:bg-primary/90 font-semibold rounded-md"
                 disabled={loading}
               >
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
-            <p className="text-center mt-6 text-muted-foreground">
+            <p className="text-center mt-6 text-sm text-muted-foreground">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-accent hover:underline font-semibold">
-                Sign Up
+              <Link to="/signup" className="text-accent font-medium hover:underline">
+                Create one free
               </Link>
             </p>
           </div>

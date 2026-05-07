@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Gavel } from "lucide-react";
 
 const Signup = () => {
   const [fullName, setFullName] = useState("");
@@ -19,42 +19,27 @@ const Signup = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
-      }
+      if (session) navigate("/");
     });
 
-    // Listen for auth changes
-    // We rely on manual navigation for signups so we can push them to verification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/");
-      }
+      if (event === "SIGNED_IN" && session) navigate("/");
     });
 
-    return () => { };
+    return () => {};
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!fullName || !email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
       return;
     }
 
     if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
 
@@ -64,25 +49,15 @@ const Signup = () => {
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName },
         emailRedirectTo: `${window.location.origin}/`,
       },
     });
 
     if (error) {
-      toast({
-        title: "Signup Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Signup Failed", description: error.message, variant: "destructive" });
     } else {
-      toast({
-        title: "Success",
-        description: "Account created successfully! Please verify your identity.",
-      });
-      // Redirect to verification immediately for new signups
+      toast({ title: "Account created!", description: "Let's set up your payment method." });
       navigate("/payment-methods");
     }
     setLoading(false);
@@ -92,39 +67,80 @@ const Signup = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-md mx-auto bg-card p-8 rounded-lg shadow-elegant border border-border">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
-            <p className="text-muted-foreground mb-6">Join Auctify and start bidding</p>
+      <main className="flex-1 flex">
+        {/* Left — brand panel */}
+        <div className="hidden lg:flex lg:w-5/12 bg-primary flex-col justify-between p-12">
+          <div className="flex items-center gap-2">
+            <Gavel className="h-5 w-5 text-accent" />
+            <span className="font-display text-xl text-white tracking-tight" style={{ letterSpacing: "-0.02em" }}>
+              Auctify
+            </span>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+          <div className="space-y-6">
+            <h2 className="font-display text-3xl text-white leading-snug">
+              Join thousands of buyers and sellers.
+            </h2>
+            <ul className="space-y-3">
+              {[
+                "List your items in under 2 minutes",
+                "Bid on exclusive items worldwide",
+                "Secure payments, guaranteed",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-white/65 text-sm">
+                  <span className="mt-0.5 h-4 w-4 rounded-full bg-accent/20 text-accent flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Auctify</p>
+        </div>
+
+        {/* Right — form */}
+        <div className="flex-1 flex items-center justify-center px-6 py-16 bg-background">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <h1 className="font-display text-3xl text-foreground mb-1">Create your account</h1>
+              <p className="text-muted-foreground text-sm">Free to join — start bidding in minutes</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <Label htmlFor="fullName" className="text-sm font-medium text-foreground mb-1.5 block">
+                  Full name
+                </Label>
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Jane Smith"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
+                  className="h-11"
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium text-foreground mb-1.5 block">
+                  Email address
+                </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-11"
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <div>
+                <Label htmlFor="password" className="text-sm font-medium text-foreground mb-1.5 block">
+                  Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -132,12 +148,13 @@ const Signup = () => {
                     placeholder="At least 6 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="h-11 pr-10"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -146,17 +163,17 @@ const Signup = () => {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-11 bg-primary text-white hover:bg-primary/90 font-semibold rounded-md"
                 disabled={loading}
               >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
 
-            <p className="text-center mt-6 text-muted-foreground">
+            <p className="text-center mt-6 text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/login" className="text-accent hover:underline font-semibold">
-                Sign In
+              <Link to="/login" className="text-accent font-medium hover:underline">
+                Sign in
               </Link>
             </p>
           </div>
