@@ -38,6 +38,11 @@ const Signup = () => {
       return;
     }
 
+    if (!email.toLowerCase().endsWith("@gmail.com")) {
+      toast({ title: "Invalid Email", description: "Only @gmail.com email addresses are allowed.", variant: "destructive" });
+      return;
+    }
+
     if (password.length < 6) {
       toast({ title: "Error", description: "Password must be at least 6 characters", variant: "destructive" });
       return;
@@ -129,12 +134,15 @@ const Signup = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="you@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-11"
+                  className={`h-11 ${email && !email.toLowerCase().endsWith("@gmail.com") ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   required
                 />
+                {email && !email.toLowerCase().endsWith("@gmail.com") && (
+                  <p className="text-red-500 text-xs mt-1">Email must end with @gmail.com</p>
+                )}
               </div>
 
               <div>

@@ -126,7 +126,7 @@ const Home = () => {
               {categories.map((category) => (
                 <button
                   key={category.name}
-                  onClick={() => { setCategoryFilter(category.name.toLowerCase()); navigate("/auction"); }}
+                  onClick={() => { setCategoryFilter(category.name.toLowerCase()); navigate(`/auction?category=${category.name.toLowerCase()}`); }}
                   style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '7px 16px', borderRadius: '9999px', border: '1px solid #e2e8f0', fontSize: '13px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#475569', background: '#f8fafc', cursor: 'pointer', transition: 'all 0.15s ease' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.color = '#2563eb'; e.currentTarget.style.background = '#eff6ff'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#f8fafc'; }}

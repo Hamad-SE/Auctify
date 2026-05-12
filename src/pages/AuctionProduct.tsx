@@ -28,6 +28,20 @@ const AuctionProduct = () => {
     },
   });
 
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ["payment-methods", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("user_payment_methods")
+        .select("*")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const { data: isWatchlisted, refetch: refetchWatchlist } = useQuery({
     queryKey: ["watchlist", id, user?.id],
     queryFn: async () => {
@@ -101,6 +115,40 @@ const AuctionProduct = () => {
     enabled: !!id,
   });
 
+  const isEnded = product ? new Date() > new Date(product.end_date) : false;
+
+  const { data: winnerId } = useQuery({
+    queryKey: ["winning-bid", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("bids")
+        .select("bidder_id")
+        .eq("auction_id", id)
+        .order("amount", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.bidder_id || null;
+    },
+    enabled: !!id && isEnded,
+  });
+
+  const { data: payment } = useQuery({
+    queryKey: ["payment", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("auction_id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && isEnded,
+  });
+
   useEffect(() => {
     if (!id) return;
 
@@ -160,7 +208,7 @@ const AuctionProduct = () => {
   }
 
   const currentBidNumber = Number(product.current_price || 0);
-  const minimumBid = currentBidNumber + 100;
+  const minimumBid = currentBidNumber + 5;
 
   const handlePlaceBid = async () => {
     const bidValue = parseFloat(bidAmount);
@@ -202,6 +250,17 @@ const AuctionProduct = () => {
           variant: "destructive",
         });
         setIsBidding(false);
+        return;
+      }
+
+      if (paymentMethods.length === 0) {
+        toast({
+          title: "Verification Required",
+          description: "Please add a payment method before placing a bid.",
+          variant: "destructive",
+        });
+        setIsBidding(false);
+        navigate("/payment-methods");
         return;
       }
 
@@ -253,7 +312,6 @@ const AuctionProduct = () => {
   };
 
   const isUpcoming = new Date() < new Date(product?.start_date);
-  const isEnded = new Date() > new Date(product?.end_date);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -366,28 +424,72 @@ const AuctionProduct = () => {
                         <p className="text-sm text-muted-foreground mt-1">Check back when the countdown ends to place your bid.</p>
                       </div>
                     ) : isEnded ? (
-                      <div className="p-4 bg-muted/50 rounded-lg text-center border border-border">
-                        <p className="font-medium text-foreground">Auction has ended</p>
-                        <p className="text-sm text-muted-foreground mt-1">This item is no longer available for bidding.</p>
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-sm text-muted-foreground">
-                          Enter ${minimumBid.toLocaleString()} or more
-                        </p>
-                        <div className="flex gap-3">
-                          <Input
-                            type="number"
-                            placeholder={`$${minimumBid.toLocaleString()}`}
-                            value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
-                            className="flex-1"
-                          />
-                          <Button onClick={handlePlaceBid} className="bg-gradient-accent px-8" disabled={isBidding}>
-                            {isBidding ? "Placing..." : "Place Bid"}
+                      payment ? (
+                        <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg text-center border border-green-200 dark:border-green-900">
+                          <p className="font-medium text-green-800 dark:text-green-300">Item Paid & Secured</p>
+                          <p className="text-sm text-green-700/80 dark:text-green-400/80 mt-1">
+                            Funds are in escrow. Check your chat for updates from the seller.
+                          </p>
+                          {user?.id === winnerId && (
+                            <Button className="mt-3 w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => navigate(`/chat/${id}`)}>
+                              Message Seller
+                            </Button>
+                          )}
+                        </div>
+                      ) : user?.id === winnerId ? (
+                        <div className="p-4 bg-accent/10 rounded-lg text-center border border-accent/20 shadow-sm animate-fade-in">
+                          <p className="font-bold text-accent text-lg">🎉 You Won the Auction!</p>
+                          <p className="text-sm text-muted-foreground mt-1 mb-4">
+                            Please proceed to checkout to secure your item.
+                          </p>
+                          <Button 
+                            className="w-full bg-gradient-accent text-white font-semibold" 
+                            onClick={() => navigate(`/payment/${id}`)}
+                          >
+                            Pay ${product.current_price?.toLocaleString()} Now
                           </Button>
                         </div>
-                      </>
+                      ) : user?.id === product.seller_id ? (
+                        <div className="p-4 bg-muted/50 rounded-lg text-center border border-border">
+                          <p className="font-medium text-foreground">Auction Ended Successfully</p>
+                          <p className="text-sm text-muted-foreground mt-1">Waiting for the winning bidder to complete payment.</p>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-muted/50 rounded-lg text-center border border-border">
+                          <p className="font-medium text-foreground">Auction has ended</p>
+                          <p className="text-sm text-muted-foreground mt-1">This item is no longer available for bidding.</p>
+                        </div>
+                      )
+                    ) : (
+                      user && paymentMethods.length === 0 ? (
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg text-center border border-yellow-200 dark:border-yellow-900 shadow-sm animate-fade-in">
+                          <p className="font-medium text-yellow-800 dark:text-yellow-300">Verification Required</p>
+                          <p className="text-sm text-yellow-700/80 dark:text-yellow-400/80 mt-1 mb-3">
+                            You must attach a card to your account before you can place bids.
+                          </p>
+                          <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white" onClick={() => navigate("/payment-methods")}>
+                            Add Payment Method
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-muted-foreground">
+                            Enter ${minimumBid.toLocaleString()} or more
+                          </p>
+                          <div className="flex gap-3">
+                            <Input
+                              type="number"
+                              placeholder={`$${minimumBid.toLocaleString()}`}
+                              value={bidAmount}
+                              onChange={(e) => setBidAmount(e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button onClick={handlePlaceBid} className="bg-gradient-accent px-8" disabled={isBidding}>
+                              {isBidding ? "Placing..." : "Place Bid"}
+                            </Button>
+                          </div>
+                        </>
+                      )
                     )}
                   </div>
                 </CardContent>
