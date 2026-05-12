@@ -109,7 +109,7 @@ const Home = () => {
               <Link to="/auction" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#ffffff', background: 'linear-gradient(135deg, #2563eb, #4f46e5)', padding: '13px 28px', borderRadius: '8px', textDecoration: 'none', letterSpacing: '-0.01em', boxShadow: '0 4px 20px rgba(37,99,235,0.5)', transition: 'opacity 0.15s, transform 0.15s' }}>
                 Browse Auctions
               </Link>
-              <Link to="/signup" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#ffffff', background: 'rgba(255,255,255,0.1)', padding: '13px 28px', borderRadius: '8px', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', transition: 'background 0.2s' }}>
+              <Link to="/create-auction" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#ffffff', background: 'rgba(255,255,255,0.1)', padding: '13px 28px', borderRadius: '8px', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', transition: 'background 0.2s' }}>
                 Start Selling
               </Link>
             </div>

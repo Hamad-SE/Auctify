@@ -410,11 +410,16 @@ const MyListings = () => {
 
             <main className="flex-1 py-12">
                 <div className="container mx-auto px-4">
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-8 relative">
                         <h1 className="text-4xl font-bold mb-4 text-primary">User Dashboard</h1>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
                             Manage your listings, track your bids, and view your watchlisted items all in one place.
                         </p>
+                        <div className="mt-4 flex justify-center">
+                            <Button className="bg-gradient-accent" onClick={() => navigate("/create-auction")}>
+                                List an Item
+                            </Button>
+                        </div>
                     </div>
 
                     <Tabs defaultValue="listings" className="w-full">

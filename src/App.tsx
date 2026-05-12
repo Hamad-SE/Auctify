@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import MyListings from "./pages/MyListings";
 import Chat from "./pages/Chat";
 import EditAuction from "./pages/EditAuction";
+import CreateAuction from "./pages/CreateAuction";
 import Payment from "./pages/Payment";
 import PaymentMethods from "./pages/PaymentMethods";
 
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/payment/:auctionId" element={<Payment />} />
           <Route path="/payment-methods" element={<PaymentMethods />} />
           <Route path="/edit-auction/:id" element={<EditAuction />} />
+          <Route path="/create-auction" element={<CreateAuction />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

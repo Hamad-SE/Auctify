@@ -502,7 +502,7 @@ const AuctionProduct = () => {
                     <User className="h-5 w-5 text-accent" />
                     <div>
                       <p className="text-xs text-muted-foreground">Seller</p>
-                      <p className="font-medium">{product.profiles?.full_name || "Anonymous User"}</p>
+                      <p className="font-medium">{product.profiles?.full_name || "Product Owner"}</p>
                     </div>
                   </CardContent>
                 </Card>
