@@ -1,0 +1,496 @@
+/* ═══════════════════════════════════════════════════════
+   AuctBot — AI Chatbot Widget Styles
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Toggle Button ─────────────────────────────────── */
+.auctbot-toggle {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  box-shadow:
+    0 4px 24px rgba(37, 99, 235, 0.45),
+    0 0 0 0 rgba(37, 99, 235, 0.4);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
+  animation: auctbot-pulse 2.5s infinite;
+}
+
+.auctbot-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 32px rgba(37, 99, 235, 0.55);
+  animation: none;
+}
+
+.auctbot-toggle.open {
+  animation: none;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  box-shadow: 0 4px 24px rgba(220, 38, 38, 0.4);
+}
+
+.auctbot-toggle svg {
+  width: 26px;
+  height: 26px;
+  transition: transform 0.3s ease;
+}
+
+.auctbot-toggle.open svg {
+  transform: rotate(90deg);
+}
+
+@keyframes auctbot-pulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 24px rgba(37, 99, 235, 0.45),
+      0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 4px 24px rgba(37, 99, 235, 0.45),
+      0 0 0 12px rgba(37, 99, 235, 0);
+  }
+}
+
+/* ── Unread Badge ──────────────────────────────────── */
+.auctbot-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  animation: auctbot-badge-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes auctbot-badge-bounce {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* ── Chat Panel ────────────────────────────────────── */
+.auctbot-panel {
+  position: fixed;
+  bottom: 100px;
+  right: 28px;
+  z-index: 9998;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  height: 560px;
+  max-height: calc(100vh - 140px);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  /* Glassmorphism */
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+
+  /* Animation */
+  animation: auctbot-slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: bottom right;
+}
+
+@keyframes auctbot-slide-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Header ────────────────────────────────────────── */
+.auctbot-header {
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.1));
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+  flex-shrink: 0;
+}
+
+.auctbot-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.auctbot-avatar svg {
+  width: 22px;
+  height: 22px;
+  color: #ffffff;
+}
+
+.auctbot-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.auctbot-header-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.auctbot-header-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.auctbot-online-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+  animation: auctbot-dot-pulse 2s infinite;
+}
+
+@keyframes auctbot-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.auctbot-clear-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auctbot-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Messages Area ─────────────────────────────────── */
+.auctbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+.auctbot-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.auctbot-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.auctbot-messages::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.auctbot-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Message Bubbles ───────────────────────────────── */
+.auctbot-msg {
+  max-width: 85%;
+  animation: auctbot-msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes auctbot-msg-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auctbot-msg.user {
+  align-self: flex-end;
+}
+
+.auctbot-msg.bot {
+  align-self: flex-start;
+}
+
+.auctbot-msg-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.auctbot-msg.user .auctbot-msg-bubble {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.auctbot-msg.bot .auctbot-msg-bubble {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom-left-radius: 4px;
+}
+
+.auctbot-msg-time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+.auctbot-msg.user .auctbot-msg-time {
+  text-align: right;
+}
+
+/* ── Typing Indicator ──────────────────────────────── */
+.auctbot-typing {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  animation: auctbot-msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.auctbot-typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  animation: auctbot-typing-bounce 1.4s infinite ease-in-out;
+}
+
+.auctbot-typing-dot:nth-child(1) { animation-delay: 0s; }
+.auctbot-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.auctbot-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes auctbot-typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* ── Quick Actions / Chips ─────────────────────────── */
+.auctbot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 12px;
+  flex-shrink: 0;
+}
+
+.auctbot-chip {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.auctbot-chip:hover {
+  background: rgba(37, 99, 235, 0.2);
+  border-color: rgba(37, 99, 235, 0.4);
+  color: #93c5fd;
+}
+
+/* ── Input Area ────────────────────────────────────── */
+.auctbot-input-area {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.auctbot-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.auctbot-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.auctbot-input:focus {
+  border-color: rgba(37, 99, 235, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.auctbot-send {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.auctbot-send:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+}
+
+.auctbot-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.auctbot-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Powered By Footer ─────────────────────────────── */
+.auctbot-powered {
+  text-align: center;
+  padding: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+}
+
+/* ── Welcome Message ───────────────────────────────── */
+.auctbot-welcome {
+  text-align: center;
+  padding: 20px 16px 8px;
+}
+
+.auctbot-welcome-emoji {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.auctbot-welcome-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.auctbot-welcome-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+}
+
+/* ── Error State ───────────────────────────────────── */
+.auctbot-error {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  text-align: center;
+  animation: auctbot-msg-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .auctbot-toggle {
+    bottom: 18px;
+    right: 18px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .auctbot-panel {
+    bottom: 82px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+    height: calc(100vh - 110px);
+    max-height: none;
+    border-radius: 16px;
+  }
+}

@@ -11,6 +11,9 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [isAdminSession, setIsAdminSession] = useState(
+    () => sessionStorage.getItem("auctify_admin") === "true"
+  );
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,6 +26,13 @@ const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Listen for admin login/logout events (fired by AdminDashboard)
+  useEffect(() => {
+    const check = () => setIsAdminSession(sessionStorage.getItem("auctify_admin") === "true");
+    window.addEventListener("auctify_admin_change", check);
+    return () => window.removeEventListener("auctify_admin_change", check);
+  }, []);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -30,6 +40,10 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
+    // Clear admin session on user logout
+    sessionStorage.removeItem("auctify_admin");
+    setIsAdminSession(false);
+    window.dispatchEvent(new Event("auctify_admin_change"));
     await supabase.auth.signOut();
     toast({ title: "Logged out", description: "You have been logged out successfully." });
     navigate("/");
@@ -41,6 +55,8 @@ const Navbar = () => {
     { name: "About", path: "/about" },
     { name: "Payments", path: "/payment-methods" },
     { name: "Contact", path: "/contact" },
+    ...(user ? [{ name: "Track Orders", path: "/track-orders" }] : []),
+    ...(isAdminSession ? [{ name: "Admin", path: "/admin" }] : []),
   ];
 
   const isActivePath = (path: string) => location.pathname === path;

@@ -32,6 +32,24 @@ const Login = () => {
       return;
     }
 
+    const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "admin@gmail.com";
+    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
+
+    if (email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      if (password === ADMIN_PASSWORD) {
+        setLoading(true);
+        sessionStorage.setItem("auctify_admin", "true");
+        window.dispatchEvent(new Event("auctify_admin_change"));
+        toast({ title: "Welcome, Admin!", description: "Successfully logged in as Admin." });
+        setLoading(false);
+        navigate("/admin");
+        return;
+      } else {
+        toast({ title: "Login Failed", description: "Incorrect password for admin.", variant: "destructive" });
+        return;
+      }
+    }
+
     if (!email.toLowerCase().endsWith("@gmail.com")) {
       toast({ title: "Invalid Email", description: "Only @gmail.com email addresses are allowed.", variant: "destructive" });
       return;

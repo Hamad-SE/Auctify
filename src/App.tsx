@@ -19,6 +19,9 @@ import EditAuction from "./pages/EditAuction";
 import CreateAuction from "./pages/CreateAuction";
 import Payment from "./pages/Payment";
 import PaymentMethods from "./pages/PaymentMethods";
+import AdminDashboard from "./pages/AdminDashboard";
+import TrackOrders from "./pages/TrackOrders";
+import AIChatbot from "./components/AIChatbot";
 
 const queryClient = new QueryClient();
 
@@ -44,9 +47,12 @@ const App = () => (
           <Route path="/payment-methods" element={<PaymentMethods />} />
           <Route path="/edit-auction/:id" element={<EditAuction />} />
           <Route path="/create-auction" element={<CreateAuction />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/track-orders" element={<TrackOrders />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <AIChatbot />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
