@@ -43,9 +43,9 @@ const Contact = () => {
 
   const contactInfo = [
     { icon: Mail, label: "Email", value: "support@auctify.com" },
-    { icon: Phone, label: "Phone", value: "+1 (555) 123-4567" },
-    { icon: MapPin, label: "Address", value: "123 Auction Street, New York, NY 10001" },
-    { icon: Clock, label: "Hours", value: "Mon–Fri 9am–6pm EST" },
+    { icon: Phone, label: "Phone", value: "+92 123 4567890" },
+    { icon: MapPin, label: "Address", value: "123 Auction Street, Sargodha, Pakistan" },
+    { icon: Clock, label: "Hours", value: "Mon–Fri 9am–6pm " },
   ];
 
   return (
