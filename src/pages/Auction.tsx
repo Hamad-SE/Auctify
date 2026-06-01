@@ -321,11 +321,11 @@ const Auction = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="text-xs text-muted-foreground">Current Bid</p>
-                          <p className="text-xl font-bold text-accent">${item.current_price?.toLocaleString() || "0"}</p>
+                          <p className="text-xl font-bold text-accent">₨{item.current_price?.toLocaleString() || "0"}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-muted-foreground">Starting</p>
-                          <p className="text-sm font-medium">${item.starting_price?.toLocaleString() || "0"}</p>
+                          <p className="text-sm font-medium">₨{item.starting_price?.toLocaleString() || "0"}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">

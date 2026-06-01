@@ -246,7 +246,7 @@ const Chat = () => {
                             <p className="text-sm text-muted-foreground flex gap-2">
                                 <span>Winner Chat</span>
                                 <span>&bull;</span>
-                                <span className="font-semibold text-accent">${auction.current_price?.toLocaleString()}</span>
+                                <span className="font-semibold text-accent">₨{auction.current_price?.toLocaleString()}</span>
                             </p>
                         </div>
                     </div>

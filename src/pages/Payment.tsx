@@ -157,16 +157,16 @@ const Payment = () => {
                             <Separator />
                             <div className="flex justify-between items-center font-medium">
                                 <span>Winning Bid</span>
-                                <span>${auction.current_price?.toLocaleString()}</span>
+                                <span>₨{auction.current_price?.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-muted-foreground">
                                 <span>Platform Fee</span>
-                                <span>$0.00</span>
+                                <span>₨0.00</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between items-center font-bold text-lg">
                                 <span>Total</span>
-                                <span className="text-accent">${(auction.current_price || 0).toLocaleString()}</span>
+                                <span className="text-accent">₨{(auction.current_price || 0).toLocaleString()}</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -222,7 +222,7 @@ const Payment = () => {
                                             Processing...
                                         </>
                                     ) : (
-                                        `Pay $${(auction.current_price || 0).toLocaleString()}`
+                                        `Pay ₨${(auction.current_price || 0).toLocaleString()}`
                                     )}
                                 </Button>
                             </form>

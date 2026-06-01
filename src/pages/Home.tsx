@@ -237,7 +237,7 @@ const Home = () => {
                         <div>
                           <p style={{ fontSize: '9px', fontFamily: 'Inter, sans-serif', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', marginBottom: '3px' }}>Current Bid</p>
                           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '17px', fontWeight: 800, color: '#2563eb', letterSpacing: '-0.03em' }}>
-                            ${auction.current_price?.toLocaleString() || "0"}
+                            ₨{auction.current_price?.toLocaleString() || "0"}
                           </p>
                         </div>
                         <div style={{ textAlign: 'right' }}>

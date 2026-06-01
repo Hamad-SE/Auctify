@@ -46,7 +46,7 @@ const RESPONSE_RULES: ResponseRule[] = [
   // Bidding
   {
     keywords: ["bid", "bidding", "how to bid", "place bid", "make bid", "bid work"],
-    response: "Here's how **bidding** works on Auctify 🎯\n\n1. **Log in** to your account first\n2. Make sure you have a **payment method** saved at /payment-methods\n3. Browse auctions at /auction and find something you like\n4. Each bid must be at least **$5 more** than the current highest bid\n5. When the auction ends, the **highest bidder wins!**\n6. The winner gets a **Pay Now** button to complete the purchase\n7. After payment, you can **chat with the seller** directly\n\nReady to start bidding? Head to /auction to browse!",
+    response: "Here's how **bidding** works on Auctify 🎯\n\n1. **Log in** to your account first\n2. Make sure you have a **payment method** saved at /payment-methods\n3. Browse auctions at /auction and find something you like\n4. Each bid must be at least **₨5 more** than the current highest bid\n5. When the auction ends, the **highest bidder wins!**\n6. The winner gets a **Pay Now** button to complete the purchase\n7. After payment, you can **chat with the seller** directly\n\nReady to start bidding? Head to /auction to browse!",
     priority: 10,
   },
   // Selling
@@ -66,7 +66,7 @@ const RESPONSE_RULES: ResponseRule[] = [
         .slice(0, 5)
         .map(
           (a) =>
-            `• **${a.title}** (${a.category}) — $${a.current_price?.toLocaleString() || "0"} | ${a.bid_count || 0} bids | Ends ${new Date(a.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+            `• **${a.title}** (${a.category}) — ₨${a.current_price?.toLocaleString() || "0"} | ${a.bid_count || 0} bids | Ends ${new Date(a.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
         )
         .join("\n");
       return `Here are the latest auctions on Auctify! 🔥\n\n${list}\n\nBrowse all auctions at /auction`;
@@ -130,7 +130,7 @@ const RESPONSE_RULES: ResponseRule[] = [
   // Price / cost
   {
     keywords: ["price", "cost", "how much", "expensive", "cheap", "affordable", "starting price", "minimum bid"],
-    response: "About **pricing** on Auctify 💰\n\n• Sellers set a **starting price** when creating an auction\n• Each new bid must be at least **$5 higher** than the current bid\n• The **final price** is whatever the highest bidder offers\n• There are **no listing fees** for sellers\n• Check current prices by browsing auctions at /auction\n\nLooking for deals? Sort by \"Price: Low to High\" on the auctions page!",
+    response: "About **pricing** on Auctify 💰\n\n• Sellers set a **starting price** when creating an auction\n• Each new bid must be at least **₨5 higher** than the current bid\n• The **final price** is whatever the highest bidder offers\n• There are **no listing fees** for sellers\n• Check current prices by browsing auctions at /auction\n\nLooking for deals? Sort by \"Price: Low to High\" on the auctions page!",
     priority: 8,
   },
   // Time / duration

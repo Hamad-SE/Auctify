@@ -224,7 +224,7 @@ const AuctionProduct = () => {
     if (bidValue < minimumBid) {
       toast({
         title: "Bid Too Low",
-        description: `Minimum bid is $${minimumBid.toLocaleString()}`,
+        description: `Minimum bid is ₨${minimumBid.toLocaleString()}`,
         variant: "destructive",
       });
       return;
@@ -273,7 +273,7 @@ const AuctionProduct = () => {
 
       toast({
         title: "Bid Placed Successfully!",
-        description: `Your bid of $${bidValue.toLocaleString()} has been placed.`,
+        description: `Your bid of ₨${bidValue.toLocaleString()} has been placed.`,
       });
       setBidAmount("");
     } catch (error: Error | unknown) {
@@ -396,11 +396,11 @@ const AuctionProduct = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Current Bid</p>
-                      <p className="text-3xl font-bold text-accent">${product.current_price?.toLocaleString() || "0"}</p>
+                      <p className="text-3xl font-bold text-accent">₨{product.current_price?.toLocaleString() || "0"}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Starting Price</p>
-                      <p className="text-lg font-semibold">${product.starting_price?.toLocaleString() || "0"}</p>
+                      <p className="text-lg font-semibold">₨{product.starting_price?.toLocaleString() || "0"}</p>
                     </div>
                   </div>
 
@@ -446,7 +446,7 @@ const AuctionProduct = () => {
                             className="w-full bg-gradient-accent text-white font-semibold" 
                             onClick={() => navigate(`/payment/${id}`)}
                           >
-                            Pay ${product.current_price?.toLocaleString()} Now
+                            Pay ₨{product.current_price?.toLocaleString()} Now
                           </Button>
                         </div>
                       ) : user?.id === product.seller_id ? (
@@ -474,12 +474,12 @@ const AuctionProduct = () => {
                       ) : (
                         <>
                           <p className="text-sm text-muted-foreground">
-                            Enter ${minimumBid.toLocaleString()} or more
+                            Enter ₨{minimumBid.toLocaleString()} or more
                           </p>
                           <div className="flex gap-3">
                             <Input
                               type="number"
-                              placeholder={`$${minimumBid.toLocaleString()}`}
+                              placeholder={`₨${minimumBid.toLocaleString()}`}
                               value={bidAmount}
                               onChange={(e) => setBidAmount(e.target.value)}
                               className="flex-1"

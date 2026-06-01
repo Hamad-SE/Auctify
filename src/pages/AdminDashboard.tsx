@@ -317,7 +317,7 @@ const AdminDashboard = () => {
               <div className="admin-stat-icon purple"><DollarSign size={20} /></div>
               <div className="admin-stat-info">
                 <div className="admin-stat-label">Total Revenue</div>
-                <div className="admin-stat-value">${totalRevenue.toLocaleString()}</div>
+                <div className="admin-stat-value">₨{totalRevenue.toLocaleString()}</div>
               </div>
             </div>
             <div className="admin-stat-card">
@@ -428,7 +428,7 @@ const AdminDashboard = () => {
                               <td style={{ fontWeight: 600, color: "#0f172a", maxWidth: 180 }}>{auction.title}</td>
                               <td>{auction.profiles?.full_name || "Unknown"}</td>
                               <td><span style={{ textTransform: "capitalize" }}>{auction.category}</span></td>
-                              <td style={{ fontWeight: 700, color: "#059669" }}>${auction.current_price?.toLocaleString()}</td>
+                              <td style={{ fontWeight: 700, color: "#059669" }}>₨{auction.current_price?.toLocaleString()}</td>
                               <td style={{ textAlign: "center" }}>{auction.bid_count || 0}</td>
                               <td>
                                 <span className={`admin-badge ${status}`}>
@@ -487,7 +487,7 @@ const AdminDashboard = () => {
                             <td style={{ color: "#94a3b8", fontWeight: 600 }}>{i + 1}</td>
                             <td style={{ fontWeight: 600, color: "#0f172a" }}>{bid.profiles?.full_name || "Unknown"}</td>
                             <td style={{ maxWidth: 200 }}>{bid.auctions?.title || "—"}</td>
-                            <td style={{ fontWeight: 700, color: "#059669" }}>${bid.amount?.toLocaleString()}</td>
+                            <td style={{ fontWeight: 700, color: "#059669" }}>₨{bid.amount?.toLocaleString()}</td>
                             <td>{formatDate(bid.created_at)}</td>
                           </tr>
                         ))}
@@ -526,7 +526,7 @@ const AdminDashboard = () => {
                             <td style={{ fontWeight: 600, color: "#0f172a" }}>{payment.buyer?.full_name || "Unknown"}</td>
                             <td>{payment.seller?.full_name || "Unknown"}</td>
                             <td style={{ maxWidth: 180 }}>{payment.auctions?.title || "—"}</td>
-                            <td style={{ fontWeight: 700, color: "#059669" }}>${payment.amount?.toLocaleString()}</td>
+                            <td style={{ fontWeight: 700, color: "#059669" }}>₨{payment.amount?.toLocaleString()}</td>
                             <td>
                               <span className={`admin-badge ${payment.status || "pending"}`}>
                                 {payment.status === "escrow" ? "Escrow" : payment.status === "completed" ? "Completed" : payment.status || "Pending"}
