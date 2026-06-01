@@ -124,6 +124,20 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
 
+  const { data: recentRegistrations = [], isLoading: loadingRecentRegistrations } = useQuery({
+    queryKey: ["admin-recent-registrations"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
   // ─── Actions ─────────────────────────────────────
   const handleDeleteAuction = async (auctionId: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) return;
@@ -333,6 +347,46 @@ const AdminDashboard = () => {
                 <div className="admin-stat-label">Payments</div>
                 <div className="admin-stat-value">{allPayments.length}</div>
               </div>
+            </div>
+          </div>
+
+          {/* Recent Registrations Section */}
+          <div className="admin-recent-registrations" style={{ marginBottom: "2rem" }}>
+            <div className="admin-table-wrap">
+              <div className="admin-table-header">
+                <h3>Recent Registrations</h3>
+                <span className="admin-table-count">{recentRegistrations.length} new users</span>
+              </div>
+              {loadingRecentRegistrations ? <Loading /> : recentRegistrations.length === 0 ? <Empty text="No recent registrations." /> : (
+                <div className="admin-table-scroll">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Registered On</th>
+                        <th>User ID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentRegistrations.map((profile: any, i: number) => (
+                        <tr key={profile.id}>
+                          <td style={{ color: "#94a3b8", fontWeight: 600 }}>{i + 1}</td>
+                          <td style={{ fontWeight: 600, color: "#0f172a" }}>
+                            {profile.full_name || "—"}
+                          </td>
+                          <td>{profile.email || "—"}</td>
+                          <td>{formatDate(profile.created_at)}</td>
+                          <td style={{ fontSize: 11, color: "#94a3b8", fontFamily: "monospace" }}>
+                            {profile.id.slice(0, 8)}...
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
 
