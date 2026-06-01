@@ -159,7 +159,7 @@ const TrackOrders = () => {
                         )}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div className="track-card-amount">${order.amount?.toLocaleString()}</div>
+                        <div className="track-card-amount">₨{order.amount?.toLocaleString()}</div>
                         <div className="track-card-orderId">#{order.id.slice(0, 8).toUpperCase()}</div>
                       </div>
                     </div>

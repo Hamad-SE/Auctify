@@ -213,18 +213,18 @@ const MyListings = () => {
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <p className="text-xs text-muted-foreground">Current Price</p>
-                                        <p className="text-xl font-bold text-accent">${auction.current_price?.toLocaleString() || "0"}</p>
+                                        <p className="text-xl font-bold text-accent">₨{auction.current_price?.toLocaleString() || "0"}</p>
                                     </div>
                                     {item.amount && (
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-primary">Your Last Bid</p>
-                                            <p className="text-sm font-medium">${item.amount?.toLocaleString() || "0"}</p>
+                                            <p className="text-sm font-medium">₨{item.amount?.toLocaleString() || "0"}</p>
                                         </div>
                                     )}
                                     {!item.amount && (
                                         <div className="text-right">
                                             <p className="text-xs text-muted-foreground">Starting</p>
-                                            <p className="text-sm font-medium">${auction.starting_price?.toLocaleString() || "0"}</p>
+                                            <p className="text-sm font-medium">₨{auction.starting_price?.toLocaleString() || "0"}</p>
                                         </div>
                                     )}
                                 </div>
